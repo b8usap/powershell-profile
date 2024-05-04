@@ -86,9 +86,11 @@ function Test-CommandExists {
 }
 
 # Editor Configuration
-$EDITOR = if (Test-CommandExists nvim) { 'notepad++' }
-          elseif (Test-CommandExists notepad++) { 'notepad++' }
-          else { 'notepad' }
+$EDITOR = 'notepad++'
+
+        #if (Test-CommandExists nvim) { 'notepad++' }
+         # elseif (Test-CommandExists notepad++) { 'notepad++' }
+          #else { 'notepad' }
 Set-Alias -Name notepad++ -Value $EDITOR
 
 function Edit-Profile {
