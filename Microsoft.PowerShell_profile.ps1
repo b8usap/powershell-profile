@@ -205,6 +205,8 @@ function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 # Navigation Shortcuts
 function docs { Set-Location -Path $HOME\Documents }
 
+function down { Set-Location -Path %HOME\Downloads }
+
 function dtop { Set-Location -Path $HOME\Desktop }
 
 # Quick Access to Editing the Profile
