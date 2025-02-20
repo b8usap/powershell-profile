@@ -97,7 +97,7 @@ $EDITOR = if (Test-CommandExists notepad++) { 'notepad++' }
 Set-Alias -Name notepad++ -Value $EDITOR
 
 function Edit-Profile {
-    notepad++.exe $PROFILE
+    notepad $PROFILE
 }
 function touch($file) { "" | Out-File $file -Encoding ASCII }
 function ff($name) {
