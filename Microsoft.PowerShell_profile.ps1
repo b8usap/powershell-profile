@@ -198,6 +198,8 @@ function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 ### Quality of Life Aliases
 
 # Navigation Shortcuts
+function home { Set-Location -Path $HOME }
+
 function docs { Set-Location -Path $HOME\Documents }
 
 function down { Set-Location -Path $HOME\Downloads }
