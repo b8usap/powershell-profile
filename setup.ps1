@@ -47,7 +47,7 @@ if (!(Test-Path -Path $PROFILE -PathType Leaf)) {
 }
 else {
     try {
-        Get-Item -Path $PROFILE | Move-Item -Destination "oldprofile.ps1" -Force
+        Get-Item -Path $PROFILE | Move-Item -Destination (Join-Path (Split-Path $PROFILE) "oldprofile.ps1") -Force
         Invoke-RestMethod https://github.com/ChrisTitusTech/powershell-profile/raw/main/Microsoft.PowerShell_profile.ps1 -OutFile $PROFILE
         Write-Host "The profile @ [$PROFILE] has been created and old profile removed."
         Write-Host "Please back up any persistent components of your old profile to [$HOME\Documents\PowerShell\Profile.ps1] as there is an updater in the installed profile which uses the hash to update the profile and will lead to loss of changes"
@@ -94,13 +94,6 @@ catch {
     Write-Error "Failed to download or install the Cascadia Code font. Error: $_"
 }
 
-# Final check and message to the user
-if ((Test-Path -Path $PROFILE) -and (winget list --name "OhMyPosh" -e) -and ($fontFamilies -contains "CaskaydiaCove NF")) {
-    Write-Host "Setup completed successfully. Please restart your PowerShell session to apply changes."
-} else {
-    Write-Warning "Setup completed with errors. Please check the error messages above."
-}
-
 # Choco install
 try {
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -123,4 +116,13 @@ try {
 }
 catch {
     Write-Error "Failed to install zoxide. Error: $_"
+}
+
+# Final check and message to the user
+[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+$fontFamiliesAfterInstall = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
+if ((Test-Path -Path $PROFILE) -and (winget list --name "OhMyPosh" -e) -and ($fontFamiliesAfterInstall -contains "CaskaydiaCove NF")) {
+    Write-Host "Setup completed successfully. Please restart your PowerShell session to apply changes."
+} else {
+    Write-Warning "Setup completed with errors. Please check the error messages above."
 }

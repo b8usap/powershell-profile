@@ -2,7 +2,7 @@
 ### Version 1.03 - Refactored
 
 # Initial GitHub.com connectivity check with 1 second timeout
-$canConnectToGitHub = Test-Connection github.com 
+$canConnectToGitHub = Test-Connection github.com -Count 1 -TimeoutSeconds 1 -Quiet
 
 # Import Modules and External Profiles
 # Ensure Terminal-Icons module is installed before importing
@@ -52,7 +52,7 @@ function Update-PowerShell {
         $gitHubApiUrl = "https://api.github.com/repos/PowerShell/PowerShell/releases/latest"
         $latestReleaseInfo = Invoke-RestMethod -Uri $gitHubApiUrl
         $latestVersion = $latestReleaseInfo.tag_name.Trim('v')
-        if ($currentVersion -lt $latestVersion) {
+        if ([System.Version]$currentVersion -lt [System.Version]$latestVersion) {
             $updateNeeded = $true
         }
 
@@ -86,7 +86,7 @@ function Test-CommandExists {
 }
 
 # Editor Configuration
-$EDITOR = if (Test-CommandExists notepad++) { 'notepad++' }
+$EDITOR = if (Test-CommandExists nvim) { 'nvim' }
           elseif (Test-CommandExists pvim) { 'pvim' }
           elseif (Test-CommandExists vim) { 'vim' }
           elseif (Test-CommandExists vi) { 'vi' }
@@ -94,10 +94,10 @@ $EDITOR = if (Test-CommandExists notepad++) { 'notepad++' }
           elseif (Test-CommandExists notepad++) { 'notepad++' }
           elseif (Test-CommandExists sublime_text) { 'sublime_text' }
           else { 'notepad' }
-Set-Alias -Name notepad++ -Value $EDITOR
+Set-Alias -Name edit -Value $EDITOR
 
 function Edit-Profile {
-    notepad $PROFILE
+    & $EDITOR $PROFILE
 }
 function touch($file) { "" | Out-File $file -Encoding ASCII }
 function ff($name) {
@@ -123,7 +123,7 @@ function reload-profile {
 }
 
 function unzip ($file) {
-    Write-Output("Extracting", $file, "to", $pwd)
+    Write-Host "Extracting $file to $pwd"
     $fullFile = Get-ChildItem -Path $pwd -Filter $file | ForEach-Object { $_.FullName }
     Expand-Archive -Path $fullFile -DestinationPath $pwd
 }
@@ -142,11 +142,11 @@ function hb {
         return
     }
     
-    $uri = "http://bin.christitus.com/documents"
+    $uri = "https://bin.christitus.com/documents"
     try {
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $Content -ErrorAction Stop
         $hasteKey = $response.key
-        $url = "http://bin.christitus.com/$hasteKey"
+        $url = "https://bin.christitus.com/$hasteKey"
         Write-Output $url
     } catch {
         Write-Error "Failed to upload the document. Error: $_"
@@ -205,12 +205,12 @@ function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 # Navigation Shortcuts
 function docs { Set-Location -Path $HOME\Documents }
 
-function down { Set-Location -Path %HOME\Downloads }
+function down { Set-Location -Path $HOME\Downloads }
 
 function dtop { Set-Location -Path $HOME\Desktop }
 
 # Quick Access to Editing the Profile
-function ep { vim $PROFILE }
+function ep { & $EDITOR $PROFILE }
 
 # Simplified Process Management
 function k9 { Stop-Process -Name $args[0] }
@@ -224,7 +224,7 @@ function gs { git status }
 
 function ga { git add . }
 
-function gc { param($m) git commit -m "$m" }
+function gco { param($m) git commit -m "$m" }
 
 function gp { git push }
 
