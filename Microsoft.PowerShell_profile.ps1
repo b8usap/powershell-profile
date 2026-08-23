@@ -1,5 +1,5 @@
 ﻿### PowerShell Profile
-### Version 2.00 - Fixed & Refactored
+### Version 2.01 - Fixed & Refactored
 
 #region --- Helpers ---
 
@@ -117,6 +117,10 @@ Update-Profile
 #region --- PowerShell Updates ---
 
 function Update-PowerShell {
+    # Windows PowerShell 5.1 and PowerShell 7+ are separate products - winget
+    # cannot upgrade one into the other, so there is nothing to check on 5.1.
+    # Returning early also spares every shell a GitHub API round-trip.
+    if ($PSVersionTable.PSEdition -ne 'Core') { return }
     if (-not $global:canConnectToGitHub) {
         Write-Host "Skipping PowerShell update check (GitHub unreachable)." -ForegroundColor Yellow
         return
@@ -127,12 +131,17 @@ function Update-PowerShell {
         $latestReleaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/PowerShell/PowerShell/releases/latest"
         $latestVersion = [Version]$latestReleaseInfo.tag_name.TrimStart('v')
 
-        if ($currentVersion -lt $latestVersion) {
-            Write-Host "Updating PowerShell to $latestVersion..." -ForegroundColor Yellow
-            winget upgrade Microsoft.PowerShell --source winget --accept-source-agreements --accept-package-agreements
+        if ($currentVersion -ge $latestVersion) {
+            Write-Host "PowerShell is up to date ($currentVersion)." -ForegroundColor Green
+            return
+        }
+
+        Write-Host "Updating PowerShell $currentVersion -> $latestVersion..." -ForegroundColor Yellow
+        winget upgrade --id Microsoft.PowerShell --exact --source winget --accept-source-agreements --accept-package-agreements
+        if ($LASTEXITCODE -eq 0) {
             Write-Host "PowerShell updated. Please restart your shell." -ForegroundColor Magenta
         } else {
-            Write-Host "PowerShell is up to date ($currentVersion)." -ForegroundColor Green
+            Write-Warning "winget could not upgrade PowerShell (exit $LASTEXITCODE). Nothing was changed."
         }
     } catch {
         Write-Warning "Failed to check for PowerShell updates: $_"
